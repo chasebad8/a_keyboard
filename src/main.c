@@ -9,7 +9,7 @@
 #include <LUFA/Drivers/USB/USB.h>
 #include <LUFA/Platform/Platform.h>
 
-#include "usb_descriptors.h"
+#include "Descriptors.h"
 #include "gpio.h"
 
 void SetupHardware(void);
@@ -61,7 +61,10 @@ int main(void)
    gpio_init(GPIOB, PB0, gpio_cfg);
    gpio_init(GPIOD, PD5, gpio_cfg);
 
-   gpio_init(GPIOD, PD0, gpio_cfg);
+  // gpio_init(GPIOD, PD0, gpio_cfg);
+
+   DDRD &= ~(1 << PD0);     // input
+   PORTD |= (1 << PD0);     // enable pull-up
 
    gpio_cfg.direction = GPIO_INPUT;
    gpio_cfg.pup       = GPIO_PUP;
@@ -71,51 +74,54 @@ int main(void)
    gpio_write(GPIOB, PB0, !GPIO_LOW);
    gpio_write(GPIOD, PD5, !GPIO_LOW);
 
-   _delay_ms(3000);
+   //uint8_t counter = 0;
 
-   uint8_t counter = 0;
+   // while (1)
+   // {
+   //    if (gpio_read(GPIOB, PB6) == GPIO_LOW)
+   //    {
+   //       gpio_write(GPIOB, PB0, !GPIO_HIGH);
+   //       gpio_write(GPIOD, PD5, !GPIO_HIGH);
+   //    }
+   //    else
+   //    {
+   //       gpio_write(GPIOB, PB0, !GPIO_LOW);
+   //       gpio_write(GPIOD, PD5, !GPIO_LOW);
+   //    }
 
-   while (1)
-   {
-      if (gpio_read(GPIOB, PB6) == GPIO_LOW)
-      {
-         gpio_write(GPIOB, PB0, !GPIO_HIGH);
-         gpio_write(GPIOD, PD5, !GPIO_HIGH);
-      }
-      else
-      {
-         gpio_write(GPIOB, PB0, !GPIO_LOW);
-         gpio_write(GPIOD, PD5, !GPIO_LOW);
-      }
+   //    if (counter % 2 == 0)
+   //    {
+   //       _delay_ms(300);
+   //       gpio_write(GPIOB, PB0, !gpio_read(GPIOB, PB0));
+   //       _delay_ms(300);
+   //       gpio_write(GPIOB, PB0, !gpio_read(GPIOB, PB0));
+   //       _delay_ms(300);
+   //    }
 
-      if (counter % 2 == 0)
-      {
-         _delay_ms(300);
-         gpio_write(GPIOB, PB0, !gpio_read(GPIOB, PB0));
-         _delay_ms(300);
-         gpio_write(GPIOB, PB0, !gpio_read(GPIOB, PB0));
-         _delay_ms(300);
-      }
+   //    gpio_write(GPIOD, PD5, !gpio_read(GPIOD, PD5));
+   //    _delay_ms(1000);
 
-      gpio_write(GPIOD, PD5, !gpio_read(GPIOD, PD5));
-      _delay_ms(1000);
+   //    counter++;
+   // }
 
-      counter++;
-   }
+   // for (uint8_t i = 0; i < 24; i++)
+   // {
+   //    gpio_write(GPIOB, PB0, !gpio_read(GPIOB, PB0));
+   //    _delay_ms(50);
+   // }
 
    SetupHardware();
 
    /* Resolves to sei() avr call, enables global interrupt mask */
    GlobalInterruptEnable();
 
-   // for (;;)
-   // {
-   // 	HID_Device_USBTask(&Keyboard_HID_Interface);
-   // 	USB_USBTask();
-   // }
+   while(1)
+   {
+   	HID_Device_USBTask(&Keyboard_HID_Interface);
+   	USB_USBTask();
+   }
 }
 
-/** Configures the board hardware and chip peripherals for the demo's functionality. */
 void SetupHardware()
 {
    /* Disable watchdog if enabled by bootloader/fuses */
@@ -131,7 +137,11 @@ void SetupHardware()
 /** Event handler for the library USB Connection event. */
 void EVENT_USB_Device_Connect(void)
 {
-   ;
+   for (uint8_t i = 0; i < 12; i++)
+   {
+      gpio_write(GPIOD, PD5, !gpio_read(GPIOD, PD5));
+      _delay_ms(100);
+   }
 }
 
 /** Event handler for the library USB Disconnection event. */
@@ -188,20 +198,18 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t *const HIDIn
                                          void *ReportData,
                                          uint16_t *const ReportSize)
 {
+   gpio_write(GPIOD, PD5, !gpio_read(GPIOD, PD5));
+
    USB_KeyboardReport_Data_t *KeyboardReport = (USB_KeyboardReport_Data_t *)ReportData;
 
-   uint8_t UsedKeyCodes = 0;
-
-   KeyboardReport->KeyCode[UsedKeyCodes++] = HID_KEYBOARD_SC_H;
-   KeyboardReport->KeyCode[UsedKeyCodes++] = HID_KEYBOARD_SC_E;
-   KeyboardReport->KeyCode[UsedKeyCodes++] = HID_KEYBOARD_SC_L;
-   KeyboardReport->KeyCode[UsedKeyCodes++] = HID_KEYBOARD_SC_L;
-   KeyboardReport->KeyCode[UsedKeyCodes++] = HID_KEYBOARD_SC_O;
-
-   if (UsedKeyCodes)
+   // Read button
+   if (!(PIND & (1 << PD0)))  // pressed
    {
-      KeyboardReport->Modifier = HID_KEYBOARD_MODIFIER_LEFTSHIFT;
+      KeyboardReport->KeyCode[0] = HID_KEYBOARD_SC_A;
    }
+
+   // Initialize to all zeros (no keys pressed)
+   memset(KeyboardReport, 0, sizeof(USB_KeyboardReport_Data_t));
 
    *ReportSize = sizeof(USB_KeyboardReport_Data_t);
    return false;
@@ -232,5 +240,5 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t *const HIDI
                                           const void *ReportData,
                                           const uint16_t ReportSize)
 {
-   ;
+   gpio_write(GPIOB, PB0, !gpio_read(GPIOB, PB0));;
 }
