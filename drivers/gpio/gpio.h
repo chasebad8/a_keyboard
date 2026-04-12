@@ -15,7 +15,7 @@ enum gpio_direction_e
    GPIO_OUTPUT
 };
 
-enum gpio_phup_e
+enum gpio_pup_e
 {
    GPIO_PDOWN = 0,
    GPIO_PUP
@@ -24,7 +24,7 @@ enum gpio_phup_e
 struct gpio_cfg_s
 {
    enum gpio_direction_e direction;
-   enum gpio_phup_e      phup;
+   enum gpio_pup_e       pup;
 };
 
 struct gpio_port_regs_s
@@ -34,6 +34,10 @@ struct gpio_port_regs_s
    volatile uint8_t PINx;
 };
 
+#define GPIOB ((struct gpio_port_regs_s *)&PORTB)
+#define GPIOC ((struct gpio_port_regs_s *)&PORTC)
+#define GPIOD ((struct gpio_port_regs_s *)&PORTD)
+
 /******************************************************************************
  * @name gpio_init
  *
@@ -41,8 +45,7 @@ struct gpio_port_regs_s
  *
  * DDxn PORTxn PUD (in MCUCR) I/O    Pull-up Comment
  * 0    0      X              Input  No      Tri-state (Hi-Z)
- * 0    1      0              Input  Yes     Pxn will source current if ext.
- *                                           pulled low (col)
+ * 0    1      0              Input  Yes     Pxn will source current if ext. pulled low (col)
  * 0    1      1              Input  No      Tri-state (Hi-Z)
  * 1    0      X              Output No      Output Low (Sink)
  * 1    1      X              Output No      Output High (Source)
@@ -52,7 +55,7 @@ struct gpio_port_regs_s
  * @return none
  *
  ******************************************************************************/
- void gpio_init(volatile uint8_t *port, uint8_t pin, struct gpio_cfg_s gpio_cfg);
+void gpio_init(volatile struct gpio_port_regs_s *port, uint8_t pin, struct gpio_cfg_s gpio_cfg);
 
 /******************************************************************************
  * @name gpio_write
@@ -64,7 +67,7 @@ struct gpio_port_regs_s
  * @return none
  *
  ******************************************************************************/
-void gpio_write(volatile uint8_t *port, uint8_t pin, enum gpio_signal_e signal);
+void gpio_write(volatile struct gpio_port_regs_s *port, uint8_t pin, enum gpio_signal_e signal);
 
 /******************************************************************************
  * @name gpio_read
@@ -76,6 +79,6 @@ void gpio_write(volatile uint8_t *port, uint8_t pin, enum gpio_signal_e signal);
  * @return none
  *
  ******************************************************************************/
-uint8_t gpio_read(volatile uint8_t *port, uint8_t pin);
+uint8_t gpio_read(volatile struct gpio_port_regs_s *port, uint8_t pin);
 
 #endif //GPIO_H
