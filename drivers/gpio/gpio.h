@@ -2,6 +2,7 @@
 #define GPIO_H
 
 #include <stdint.h>
+#include <avr/io.h>
 
 enum gpio_signal_e
 {
@@ -37,6 +38,8 @@ struct gpio_port_regs_s
 #define GPIOB ((struct gpio_port_regs_s *)&PORTB)
 #define GPIOC ((struct gpio_port_regs_s *)&PORTC)
 #define GPIOD ((struct gpio_port_regs_s *)&PORTD)
+#define GPIOE ((struct gpio_port_regs_s *)&PORTE)
+#define GPIOF ((struct gpio_port_regs_s *)&PORTF)
 
 /******************************************************************************
  * @name gpio_init

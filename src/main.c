@@ -10,7 +10,7 @@
 #include <LUFA/Platform/Platform.h>
 
 #include "Descriptors.h"
-#include "gpio.h"
+#include "keyboard_matrix.h"
 
 void SetupHardware(void);
 void EVENT_USB_Device_Connect(void);
@@ -55,16 +55,14 @@ USB_ClassInfo_HID_Device_t Keyboard_HID_Interface =
 
 int main(void)
 {
+   key_matrix_init();
+
+   /* for now overwrite the LED GPIO's to we can see stuff */
    struct gpio_cfg_s gpio_cfg = {.direction = GPIO_OUTPUT, .pup = GPIO_PDOWN};
 
    /* LED's HIGH and LOW are INVERTED on these LEDs */
    gpio_init(GPIOB, PB0, gpio_cfg);
    gpio_init(GPIOD, PD5, gpio_cfg);
-
-  // gpio_init(GPIOD, PD0, gpio_cfg);
-
-   // DDRD &= ~(1 << PD0);     // input
-   // PORTD |= (1 << PD0);     // enable pull-up
 
    gpio_cfg.direction = GPIO_INPUT;
    gpio_cfg.pup       = GPIO_PUP;
@@ -81,6 +79,7 @@ int main(void)
 
    while(1)
    {
+      key_matrix_scan();
    	HID_Device_USBTask(&Keyboard_HID_Interface);
    	USB_USBTask();
    }
@@ -162,21 +161,24 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t *const HIDIn
                                          void *ReportData,
                                          uint16_t *const ReportSize)
 {
-   USB_KeyboardReport_Data_t *KeyboardReport = (USB_KeyboardReport_Data_t *)ReportData;
+   USB_KeyboardReport_Data_t *keyboard_report = (USB_KeyboardReport_Data_t *)ReportData;
+   memset(keyboard_report, 0, sizeof(USB_KeyboardReport_Data_t));
 
-   // Initialize to all zeros (no keys pressed)
-   memset(KeyboardReport, 0, sizeof(USB_KeyboardReport_Data_t));
+   key_matrix_report(&keyboard_report);
 
-   // Read button
-   if (!(PIND & (1 << PD0)))  // pressed
-   {
-      KeyboardReport->KeyCode[0] = HID_KEYBOARD_SC_A;
-      gpio_write(GPIOD, PD5, 1);
-   }
-   else
-   {
-      gpio_write(GPIOD, PD5, 0);
-   }
+   // // Initialize to all zeros (no keys pressed)
+   // memset(keyboard_report, 0, sizeof(USB_KeyboardReport_Data_t));
+
+   // // Read button
+   // if (!(PIND & (1 << PD0)))  // pressed
+   // {
+   //    keyboard_report->KeyCode[0] = HID_KEYBOARD_SC_A;
+   //    gpio_write(GPIOD, PD5, 1);
+   // }
+   // else
+   // {
+   //    gpio_write(GPIOD, PD5, 0);
+   // }
 
    *ReportSize = sizeof(USB_KeyboardReport_Data_t);
    return false;
