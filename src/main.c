@@ -63,52 +63,16 @@ int main(void)
 
   // gpio_init(GPIOD, PD0, gpio_cfg);
 
-   DDRD &= ~(1 << PD0);     // input
-   PORTD |= (1 << PD0);     // enable pull-up
+   // DDRD &= ~(1 << PD0);     // input
+   // PORTD |= (1 << PD0);     // enable pull-up
 
    gpio_cfg.direction = GPIO_INPUT;
    gpio_cfg.pup       = GPIO_PUP;
 
-   gpio_init(GPIOB, PB6, gpio_cfg);
+   gpio_init(GPIOD, PD0, gpio_cfg);
 
    gpio_write(GPIOB, PB0, !GPIO_LOW);
    gpio_write(GPIOD, PD5, !GPIO_LOW);
-
-   //uint8_t counter = 0;
-
-   // while (1)
-   // {
-   //    if (gpio_read(GPIOB, PB6) == GPIO_LOW)
-   //    {
-   //       gpio_write(GPIOB, PB0, !GPIO_HIGH);
-   //       gpio_write(GPIOD, PD5, !GPIO_HIGH);
-   //    }
-   //    else
-   //    {
-   //       gpio_write(GPIOB, PB0, !GPIO_LOW);
-   //       gpio_write(GPIOD, PD5, !GPIO_LOW);
-   //    }
-
-   //    if (counter % 2 == 0)
-   //    {
-   //       _delay_ms(300);
-   //       gpio_write(GPIOB, PB0, !gpio_read(GPIOB, PB0));
-   //       _delay_ms(300);
-   //       gpio_write(GPIOB, PB0, !gpio_read(GPIOB, PB0));
-   //       _delay_ms(300);
-   //    }
-
-   //    gpio_write(GPIOD, PD5, !gpio_read(GPIOD, PD5));
-   //    _delay_ms(1000);
-
-   //    counter++;
-   // }
-
-   // for (uint8_t i = 0; i < 24; i++)
-   // {
-   //    gpio_write(GPIOB, PB0, !gpio_read(GPIOB, PB0));
-   //    _delay_ms(50);
-   // }
 
    SetupHardware();
 
@@ -198,18 +162,21 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t *const HIDIn
                                          void *ReportData,
                                          uint16_t *const ReportSize)
 {
-   gpio_write(GPIOD, PD5, !gpio_read(GPIOD, PD5));
-
    USB_KeyboardReport_Data_t *KeyboardReport = (USB_KeyboardReport_Data_t *)ReportData;
+
+   // Initialize to all zeros (no keys pressed)
+   memset(KeyboardReport, 0, sizeof(USB_KeyboardReport_Data_t));
 
    // Read button
    if (!(PIND & (1 << PD0)))  // pressed
    {
       KeyboardReport->KeyCode[0] = HID_KEYBOARD_SC_A;
+      gpio_write(GPIOD, PD5, 1);
    }
-
-   // Initialize to all zeros (no keys pressed)
-   memset(KeyboardReport, 0, sizeof(USB_KeyboardReport_Data_t));
+   else
+   {
+      gpio_write(GPIOD, PD5, 0);
+   }
 
    *ReportSize = sizeof(USB_KeyboardReport_Data_t);
    return false;
