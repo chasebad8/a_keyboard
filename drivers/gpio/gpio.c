@@ -72,5 +72,18 @@ void gpio_write(volatile struct gpio_port_regs_s *port, uint8_t pin, enum gpio_s
  ******************************************************************************/
 uint8_t gpio_read(volatile struct gpio_port_regs_s *port, uint8_t pin)
 {
-   return (port->PORTx & (1 << pin)) >> pin;
+   // For now, handle each port directly
+   if (port == GPIOB)
+      return (PINB & (1 << pin)) >> pin;
+   else if (port == GPIOC)
+      return (PINC & (1 << pin)) >> pin;
+   else if (port == GPIOD)
+      return (PIND & (1 << pin)) >> pin;
+   else if (port == GPIOE)
+      return (PINE & (1 << pin)) >> pin;
+   else if (port == GPIOF)
+      return (PINF & (1 << pin)) >> pin;
+
+   return 0;
+   // return (port->PINx & (1 << pin)) >> pin;
 }

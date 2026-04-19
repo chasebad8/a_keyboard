@@ -30,16 +30,16 @@ struct gpio_cfg_s
 
 struct gpio_port_regs_s
 {
-   volatile uint8_t PORTx;
-   volatile uint8_t DDRx;
    volatile uint8_t PINx;
+   volatile uint8_t DDRx;
+   volatile uint8_t PORTx;
 };
 
-#define GPIOB ((struct gpio_port_regs_s *)&PORTB)
-#define GPIOC ((struct gpio_port_regs_s *)&PORTC)
-#define GPIOD ((struct gpio_port_regs_s *)&PORTD)
-#define GPIOE ((struct gpio_port_regs_s *)&PORTE)
-#define GPIOF ((struct gpio_port_regs_s *)&PORTF)
+#define GPIOB ((struct gpio_port_regs_s *)&PINB)
+#define GPIOC ((struct gpio_port_regs_s *)&PINC)
+#define GPIOD ((struct gpio_port_regs_s *)&PIND)
+#define GPIOE ((struct gpio_port_regs_s *)&PINE)
+#define GPIOF ((struct gpio_port_regs_s *)&PINF)
 
 /******************************************************************************
  * @name gpio_init

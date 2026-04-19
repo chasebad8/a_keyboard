@@ -21,7 +21,8 @@ static uint16_t matrix_raw[MATRIX_ROWS];
  ******************************************************************************/
 void key_matrix_init(void)
 {
-   struct gpio_cfg_s gpio_cfg = {.direction = GPIO_OUTPUT, .pup = GPIO_PDOWN};
+   struct gpio_cfg_s gpio_cfg = { .direction = GPIO_OUTPUT,
+                                  .pup       = GPIO_PDOWN};
 
    /* initialize the rows as output pins */
    for(uint8_t row = 0; row < MATRIX_ROWS; row++)
@@ -52,31 +53,45 @@ void key_matrix_init(void)
  ******************************************************************************/
 void key_matrix_scan(void)
 {
-   // 1. SCAN: Read raw state from hardware
+   /* for every row we set the row low */
    for (uint8_t row = 0; row < MATRIX_ROWS; row++)
    {
       gpio_write(matrix_row_pin_mapping[row].port,
-                 matrix_row_pin_mapping[row].pin, GPIO_LOW);
+                 matrix_row_pin_mapping[row].pin,
+                 GPIO_LOW);
 
-      _delay_us(5);  // Small delay for settling
+      /* 5ms debounce for now for testing. */
+      _delay_ms(5);
+      gpio_write(GPIOD, PD5, 0);
 
       matrix_raw[row] = 0;
+
+      /* since the row is low if a key is pressed the pin will go low */
       for (uint8_t col = 0; col < MATRIX_COLUMNS; col++)
       {
          uint8_t pin_state = gpio_read(matrix_col_pin_mapping[col].port,
                                        matrix_col_pin_mapping[col].pin);
-         if (pin_state == GPIO_LOW)
+
+         if(pin_state == GPIO_LOW)
          {
+            gpio_write(GPIOB, PB0, 0);
             matrix_raw[row] |= (1 << col);
          }
          else
          {
+            gpio_write(GPIOB, PB0, 1);
             matrix_raw[row] &= ~(1 << col);
          }
       }
 
       gpio_write(matrix_row_pin_mapping[row].port,
-                 matrix_row_pin_mapping[row].pin, GPIO_HIGH);
+                 matrix_row_pin_mapping[row].pin,
+                 GPIO_HIGH);
+
+      /* 5ms debounce for now for testing. */
+      _delay_ms(5);
+      gpio_write(GPIOD, PD5, 1);
+
    }
 }
 
@@ -96,12 +111,11 @@ void key_matrix_report(USB_KeyboardReport_Data_t **keyboard_report)
    uint8_t keys_pressed = 0;
    USB_KeyboardReport_Data_t *keyboard = *keyboard_report;
 
-   // 3. CHANGE DETECTION: Find what changed
    for (uint8_t row = 0; row < MATRIX_ROWS; row++)
    {
       for (uint8_t col = 0; col < MATRIX_COLUMNS; col++)
       {
-         if((matrix_raw[row] & (1 << col)) == 1)
+         if((matrix_raw[row] & (1 << col)) != 0)
          {
             keyboard->KeyCode[keys_pressed++] = matrix_to_key_map[row][col];
          }

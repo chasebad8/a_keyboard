@@ -64,11 +64,6 @@ int main(void)
    gpio_init(GPIOB, PB0, gpio_cfg);
    gpio_init(GPIOD, PD5, gpio_cfg);
 
-   gpio_cfg.direction = GPIO_INPUT;
-   gpio_cfg.pup       = GPIO_PUP;
-
-   gpio_init(GPIOD, PD0, gpio_cfg);
-
    gpio_write(GPIOB, PB0, !GPIO_LOW);
    gpio_write(GPIOD, PD5, !GPIO_LOW);
 
@@ -154,7 +149,7 @@ void EVENT_USB_Device_StartOfFrame(void)
  *  @return Boolean \c true to force the sending of the report, \c false to let the
  * library determine if it needs to be sent
  *
- ******************************************************************************/
+ **************************************************** **************************/
 bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t *const HIDInterfaceInfo,
                                          uint8_t *const ReportID,
                                          const uint8_t ReportType,
@@ -165,20 +160,6 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t *const HIDIn
    memset(keyboard_report, 0, sizeof(USB_KeyboardReport_Data_t));
 
    key_matrix_report(&keyboard_report);
-
-   // // Initialize to all zeros (no keys pressed)
-   // memset(keyboard_report, 0, sizeof(USB_KeyboardReport_Data_t));
-
-   // // Read button
-   // if (!(PIND & (1 << PD0)))  // pressed
-   // {
-   //    keyboard_report->KeyCode[0] = HID_KEYBOARD_SC_A;
-   //    gpio_write(GPIOD, PD5, 1);
-   // }
-   // else
-   // {
-   //    gpio_write(GPIOD, PD5, 0);
-   // }
 
    *ReportSize = sizeof(USB_KeyboardReport_Data_t);
    return false;
