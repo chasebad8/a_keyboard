@@ -55,8 +55,6 @@ USB_ClassInfo_HID_Device_t Keyboard_HID_Interface =
 
 int main(void)
 {
-   key_matrix_init();
-
    /* for now overwrite the LED GPIO's to we can see stuff */
    struct gpio_cfg_s gpio_cfg = {.direction = GPIO_OUTPUT, .pup = GPIO_PDOWN};
 
@@ -67,8 +65,8 @@ int main(void)
    gpio_write(GPIOB, PB0, !GPIO_LOW);
    gpio_write(GPIOD, PD5, !GPIO_LOW);
 
+   key_matrix_init();
    SetupHardware();
-
    /* Resolves to sei() avr call, enables global interrupt mask */
    GlobalInterruptEnable();
 
