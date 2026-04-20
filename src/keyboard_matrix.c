@@ -1,11 +1,5 @@
 #include "keyboard_matrix.h"
 
-// struct matrix_scan_s
-// {
-//    uint16_t matrix_raw[MATRIX_ROWS]
-//    /* todo: add debouncing */
-// }
-
 static uint16_t matrix_raw[MATRIX_ROWS];
 
 /******************************************************************************
