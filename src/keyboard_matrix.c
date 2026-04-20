@@ -57,7 +57,6 @@ void key_matrix_scan(void)
    for (uint8_t row = 0; row < MATRIX_ROWS; row++)
    {
       gpio_write(matrix_row_pin_mapping[row].port, matrix_row_pin_mapping[row].pin, GPIO_LOW);
-
       _delay_ms(5);
 
       matrix_raw[row] = 0;
@@ -65,11 +64,6 @@ void key_matrix_scan(void)
       /* since the row is low if a key is pressed the pin will gnd and go low */
       for (uint8_t col = 0; col < MATRIX_COLUMNS; col++)
       {
-         if (row == 4)
-         {
-            gpio_write(GPIOD, PD5, 0);
-         }
-
          uint8_t pin_state = gpio_read(matrix_col_pin_mapping[col].port, matrix_col_pin_mapping[col].pin);
 
          if(pin_state == GPIO_LOW)
@@ -85,10 +79,6 @@ void key_matrix_scan(void)
       }
 
       gpio_write(matrix_row_pin_mapping[row].port, matrix_row_pin_mapping[row].pin, GPIO_HIGH);
-
-      _delay_ms(5);
-      gpio_write(GPIOD, PD5, 1);
-
    }
 }
 
