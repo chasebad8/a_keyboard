@@ -131,10 +131,10 @@ void key_matrix_scan(void)
 }
 
 /******************************************************************************
- * @name key_matrix_scan
+ * @name key_matrix_report
  *
- * @brief initialize the keyboard matrix. Initialize all rows as outputs and all
- *        columns as inputs.
+ * @brief when the USB host sends a report request map the currently pressed
+ *        keys (after debouncing algorithm runs) to the HID compliant hex codes.
  *
  * @param  none
  *
