@@ -62,8 +62,8 @@ int main(void)
    gpio_init(GPIOB, PB0, gpio_cfg);
    gpio_init(GPIOD, PD5, gpio_cfg);
 
-   gpio_write(GPIOB, PB0, !GPIO_LOW);
-   gpio_write(GPIOD, PD5, !GPIO_LOW);
+   gpio_write(GPIOB, PB0, LED_LOW);
+   gpio_write(GPIOD, PD5, LED_LOW);
 
    key_matrix_init();
    SetupHardware();
@@ -75,6 +75,9 @@ int main(void)
       key_matrix_scan();
    	HID_Device_USBTask(&Keyboard_HID_Interface);
    	USB_USBTask();
+
+      /* set this to a timer called in matrix_scan to be more precise */
+      _delay_us(1000);
    }
 }
 
@@ -93,10 +96,10 @@ void SetupHardware()
 /** Event handler for the library USB Connection event. */
 void EVENT_USB_Device_Connect(void)
 {
-   for (uint8_t i = 0; i < 12; i++)
+   for (uint8_t i = 0; i < 24; i++)
    {
       gpio_write(GPIOD, PD5, !gpio_read(GPIOD, PD5));
-      _delay_ms(100);
+      _delay_ms(25);
    }
 }
 
@@ -157,7 +160,7 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t *const HIDIn
    USB_KeyboardReport_Data_t *keyboard_report = (USB_KeyboardReport_Data_t *)ReportData;
    memset(keyboard_report, 0, sizeof(USB_KeyboardReport_Data_t));
 
-   key_matrix_report(&keyboard_report);
+   key_matrix_report(keyboard_report);
 
    *ReportSize = sizeof(USB_KeyboardReport_Data_t);
    return false;
@@ -188,5 +191,5 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t *const HIDI
                                           const void *ReportData,
                                           const uint16_t ReportSize)
 {
-   gpio_write(GPIOB, PB0, !gpio_read(GPIOB, PB0));;
+   ; /* gpio_write(GPIOD, PD5, !gpio_read(GPIOD, PD5)); */
 }

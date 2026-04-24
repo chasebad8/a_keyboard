@@ -7,8 +7,11 @@
 
 #include "gpio.h"
 
-#define MATRIX_ROWS    (5)
-#define MATRIX_COLUMNS (14)
+#define MATRIX_ROWS     (5)
+#define MATRIX_COLUMNS  (14)
+#define MAX_DEBOUNCE    (5)
+
+#define MAX_KEY_PRESSES (6)
 
 struct matrix_port_pin_key_s
 {
@@ -164,6 +167,6 @@ void key_matrix_scan(void);
  * @return none
  *
  ******************************************************************************/
-void key_matrix_report(USB_KeyboardReport_Data_t **keyboard_report);
+void key_matrix_report(USB_KeyboardReport_Data_t *keyboard_report);
 
 #endif

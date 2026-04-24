@@ -4,11 +4,12 @@
 #include <stdint.h>
 #include <avr/io.h>
 
-enum gpio_signal_e
-{
-   GPIO_LOW = 0,
-   GPIO_HIGH
-};
+#define GPIO_LOW    (0)
+#define GPIO_HIGH   (1)
+
+/* LED's are active low */
+#define LED_LOW     (1)
+#define LED_HIGH    (0)
 
 enum gpio_direction_e
 {
@@ -70,7 +71,7 @@ void gpio_init(volatile struct gpio_port_regs_s *port, uint8_t pin, struct gpio_
  * @return none
  *
  ******************************************************************************/
-void gpio_write(volatile struct gpio_port_regs_s *port, uint8_t pin, enum gpio_signal_e signal);
+void gpio_write(volatile struct gpio_port_regs_s *port, uint8_t pin, uint8_t signal);
 
 /******************************************************************************
  * @name gpio_read

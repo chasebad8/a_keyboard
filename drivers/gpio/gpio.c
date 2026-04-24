@@ -48,7 +48,7 @@ void gpio_init(volatile struct gpio_port_regs_s *port, uint8_t pin, struct gpio_
  * @return none
  *
  ******************************************************************************/
-void gpio_write(volatile struct gpio_port_regs_s *port, uint8_t pin, enum gpio_signal_e signal)
+void gpio_write(volatile struct gpio_port_regs_s *port, uint8_t pin, uint8_t signal)
 {
    if(signal == GPIO_LOW)
    {
