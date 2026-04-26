@@ -11,6 +11,11 @@
 
 #include "Descriptors.h"
 #include "keyboard_matrix.h"
+#include "timer.h"
+
+volatile bool timer_assert = false;
+
+void timer_cb_func(void);
 
 void SetupHardware(void);
 void EVENT_USB_Device_Connect(void);
@@ -65,20 +70,27 @@ int main(void)
    gpio_write(GPIOB, PB0, LED_LOW);
    gpio_write(GPIOD, PD5, LED_LOW);
 
-   key_matrix_init();
    SetupHardware();
-   /* Resolves to sei() avr call, enables global interrupt mask */
+
+   /* resolves to sei() avr call, enables global interrupt mask */
    GlobalInterruptEnable();
 
    while(1)
    {
-      key_matrix_scan();
    	HID_Device_USBTask(&Keyboard_HID_Interface);
    	USB_USBTask();
 
-      /* set this to a timer called in matrix_scan to be more precise */
-      _delay_us(1000);
+      if(timer_assert == true)
+      {
+         key_matrix_scan();
+         timer_assert = false;
+      }
    }
+}
+
+void timer_cb_func()
+{
+   timer_assert = true;
 }
 
 void SetupHardware()
@@ -91,6 +103,10 @@ void SetupHardware()
    clock_prescale_set(clock_div_1);
 
    USB_Init();
+
+   key_matrix_init();
+
+   configure_timer_0(timer_cb_func);
 }
 
 /** Event handler for the library USB Connection event. */

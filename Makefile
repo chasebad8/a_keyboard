@@ -19,10 +19,10 @@ F_USB        = $(F_CPU)
 OPTIMIZATION = s
 OBJDIR       = build
 TARGET       = build/firmware
-SRC          = src/main.c drivers/gpio/gpio.c src/Descriptors.c src/keyboard_matrix.c \
+SRC          = src/main.c drivers/gpio/gpio.c drivers/timers/timer.c src/Descriptors.c src/keyboard_matrix.c \
 					$(LUFA_SRC_USB) $(LUFA_SRC_USBCLASS)
 LUFA_PATH    = libs/lufa/LUFA
-CC_FLAGS     = -Werror -Wall -DUSE_LUFA_CONFIG_HEADER -Idrivers/gpio/ -Iinclude/ -Ilibs/
+CC_FLAGS     = -Werror -Wall -DUSE_LUFA_CONFIG_HEADER -Idrivers/gpio/ -Idrivers/timers -Iinclude/ -Ilibs/
 LD_FLAGS     =
 
 # Default target
