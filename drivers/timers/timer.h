@@ -98,7 +98,7 @@ struct timer_16_bit_cfg_regs_s
 #define TIM1 ((struct timer_16_bit_cfg_regs_s *)&TCCR1A)
 #define TIM3 ((struct timer_16_bit_cfg_regs_s *)&TCCR3A)
 
-void init_timer_0(struct timer8_config_t  timer_cfg,
-                  timer_callback_t        callback_func);
+void init_timer_0(struct timer8_config_t timer_cfg,
+                  timer_callback_t       callback_func);
 
 #endif
