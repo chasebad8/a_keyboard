@@ -127,9 +127,9 @@ void init_hardware()
    gpio_init(GPIOB, PB0, gpio_cfg);
    gpio_init(GPIOD, PD5, gpio_cfg);
 
-   key_matrix_init();
+   timer_0_init(timer_cfg, timer0_cb_func);
 
-   init_timer_0(timer_cfg, timer0_cb_func);
+   key_matrix_init();
 }
 
 /** Event handler for the library USB Connection event. */
