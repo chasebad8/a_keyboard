@@ -15,9 +15,12 @@
 
 volatile bool timer_assert = false;
 
-void timer_cb_func(void);
+/* timer callback function */
+void timer0_cb_func(void);
 
-void SetupHardware(void);
+/* initialize hardware */
+void init_hardware(void);
+
 void EVENT_USB_Device_Connect(void);
 void EVENT_USB_Device_Disconnect(void);
 void EVENT_USB_Device_ConfigurationChanged(void);
@@ -60,20 +63,13 @@ USB_ClassInfo_HID_Device_t Keyboard_HID_Interface =
 
 int main(void)
 {
-   /* for now overwrite the LED GPIO's to we can see stuff */
-   struct gpio_cfg_s gpio_cfg = {.direction = GPIO_OUTPUT, .pup = GPIO_PDOWN};
-
-   /* LED's HIGH and LOW are INVERTED on these LEDs */
-   gpio_init(GPIOB, PB0, gpio_cfg);
-   gpio_init(GPIOD, PD5, gpio_cfg);
+   init_hardware();
 
    gpio_write(GPIOB, PB0, LED_LOW);
    gpio_write(GPIOD, PD5, LED_LOW);
 
-   SetupHardware();
-
-   /* resolves to sei() avr call, enables global interrupt mask */
-   GlobalInterruptEnable();
+   /* enable global interrupts */
+   sei();
 
    while(1)
    {
@@ -88,25 +84,52 @@ int main(void)
    }
 }
 
-void timer_cb_func()
+/******************************************************************************
+ * @name timer0_cb_func
+ *
+ * @brief a callback function for the timer0 interrupt that is bound in on init
+ *
+ * @param  none
+ *
+ * @return none
+ *
+ ******************************************************************************/
+void timer0_cb_func()
 {
    timer_assert = true;
 }
 
-void SetupHardware()
+/******************************************************************************
+ * @name init_hardware
+ *
+ * @brief initialize various blocks of the atmega32u4
+ *
+ * @param  none
+ *
+ * @return none
+ *
+ ******************************************************************************/
+void init_hardware()
 {
-   /* Disable watchdog if enabled by bootloader/fuses */
+   /* initialize LED's */
+   struct gpio_cfg_s      gpio_cfg  = {.direction = GPIO_OUTPUT, .pup = GPIO_PDOWN};
+   struct timer8_config_t timer_cfg = { .mode = TIM8_MODE_CTC };
+
+   /* disable watchdog if enabled by bootloader/fuses */
    MCUSR &= ~(1 << WDRF);
    wdt_disable();
 
-   /* Disable clock division */
+   /* disable clock division */
    clock_prescale_set(clock_div_1);
 
    USB_Init();
 
+   gpio_init(GPIOB, PB0, gpio_cfg);
+   gpio_init(GPIOD, PD5, gpio_cfg);
+
    key_matrix_init();
 
-   configure_timer_0(timer_cb_func);
+   init_timer_0(timer_cfg, timer0_cb_func);
 }
 
 /** Event handler for the library USB Connection event. */

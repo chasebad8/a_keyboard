@@ -35,9 +35,11 @@ In this case I think we want interrupt 22 or Address 0x002A to fire and run our 
 
 volatile timer_callback_t timer0_cb = 0;
 
-void configure_timer_0(timer_callback_t cb_func)
+void init_timer_0(struct timer8_config_t timer_cfg,
+                  timer_callback_t       callback_func)
 {
-   timer0_cb = cb_func;
+
+   timer0_cb = callback_func;
 
    /* set the clock src to none to stop timer */
    TCCR0B = 0;
