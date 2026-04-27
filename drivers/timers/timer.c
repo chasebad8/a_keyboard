@@ -1,32 +1,3 @@
-/*
-Timer/Counter (TCNT0) and Output Compare Registers (OCR0A and OCR0B) are 8 bit registers.
-We can program the maximum value to count to with OCR0A reg.
-
-Interrupt signals are sent to the Timer Interrupt Flag Register (TIFR0).
-All interrupts are individually masked with the Timer Interrupt Mask Register (TIMSK0).
-The clock can be interal, scaled, or external.
-
-TCCR0A: COMA = 0x00 - we don't to hook this up to an output I/O pin so we should just set the mode to be 0.
-        COMB = 0x00
-
-TCCR0B clock select -> clk I/O / 1024 = 0x101
-
-TCNT0 - RO, the current counter value for the timer
-
-OCR0A
-OCR0B: The output compare register. You write the max value that you want the timer to compare itself against in here.
-I think you need to have the TCCR0A bits set into the right mode for this to do anything.
-
-TIMSK0:
-- OCIE0B: timer/counter output compare match b interrupt enable.
-- OCIE0A:
-
-TIFR0:
-OCF0B: set when there is a match.
-OCF0A
-
-In this case I think we want interrupt 22 or Address 0x002A to fire and run our interrupt function.
-*/
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "timer.h"
@@ -35,25 +6,148 @@ In this case I think we want interrupt 22 or Address 0x002A to fire and run our 
 
 volatile timer_callback_t timer0_cb = 0;
 
+/******************************************************************************
+ * @name tim8_mode_cfg
+ *
+ * @brief configure the timer mode
+ *
+ * @param  none
+ *
+ * @return none
+ *
+ ******************************************************************************/
+static void tim8_mode_cfg(struct timer8_config_t timer_cfg)
+{
+   /* disable timer during config */
+   TIM0->TCCRnB = 0;
+
+   TIM0->TCCRnA &= ~((1 << WGM01) | (1 << WGM00));
+   TIM0->TCCRnB &=  ~(1 << WGM02);
+
+   switch(timer_cfg.mode)
+   {
+      case TIM8_MODE_NORMAL:
+         break;
+
+      case TIM8_MODE_PHASE_CORRECT_PWM:
+         TIM0->TCCRnA |= (1 << WGM00);
+
+         if ((timer_cfg.ocr_a != 0) || (timer_cfg.ocr_b != 0))
+         {
+            TIM0->TCCRnB |= (1 << WGM02);
+         }
+         break;
+
+      case TIM8_MODE_CTC:
+         TIM0->TCCRnA |= (1 << WGM01);
+         break;
+
+      case TIM8_MODE_FAST_PWM:
+         TIM0->TCCRnA |= ((1 << WGM01) | (1 << WGM00));
+
+         if ((timer_cfg.ocr_a != 0) || (timer_cfg.ocr_b != 0))
+         {
+            TIM0->TCCRnB |= (1 << WGM02);
+         }
+         break;
+
+      default:
+         break;
+   }
+}
+
+/******************************************************************************
+ * @name tim8_clk_cfg
+ *
+ * @brief select clock source and pre-scalar for the timer.
+ *
+ * @param  none
+ *
+ * @return none
+ *
+ ******************************************************************************/
+static void tim8_clk_cfg(struct timer8_config_t timer_cfg)
+{
+   TIM0->TCCRnB &= ~((1 << CS02) | (1 << CS01) | (1 << CS00));
+
+   switch(timer_cfg.prescaler)
+   {
+      case TIM_CLK_OFF:
+         break;
+      case TIM_CLK_1:
+         TIM0->TCCRnB |= (1 << CS00);
+         break;
+      case TIM_CLK_8:
+         TIM0->TCCRnB |= (1 << CS01);
+         break;
+      case TIM_CLK_64:
+         TIM0->TCCRnB |= ((1 << CS00) | (1 << CS01));
+         break;
+      case TIM_CLK_256:
+         TIM0->TCCRnB |= (1 << CS02);
+         break;
+      case TIM_CLK_1024:
+         TIM0->TCCRnB |= ((1 << CS02) | (1 << CS00));
+         break;
+      case TIM_CLK_EXT_FALLING:
+         TIM0->TCCRnB |= ((1 << CS02) | (1 << CS01));
+         break;
+      case TIM_CLK_EXT_RISING:
+         TIM0->TCCRnB |= ((1 << CS02) | (1 << CS01) | (1 << CS00));
+         break;
+      default:
+         break;
+   }
+}
+
+/******************************************************************************
+ * @name timer_0_init
+ *
+ * @brief initialize timer 0
+ *
+ * @param  timer_cfg
+ * @param  callback_func
+ *
+ * @return none
+ *
+ ******************************************************************************/
 void timer_0_init(struct timer8_config_t timer_cfg,
                   timer_callback_t       callback_func)
 {
+   /* disable timer during config */
+   TIM0->TCCRnB = 0;
+
+   tim8_mode_cfg(timer_cfg);
+
+   TIM0->OCRnA = timer_cfg.ocr_a;
+   TIM0->OCRnB = timer_cfg.ocr_b;
+
+   TIMSK0 = 0;
+   TIMSK0 |= (((timer_cfg.enable_compb_irq << OCIE0B)) | (timer_cfg.enable_compa_irq << OCIE0A) | (timer_cfg.enable_ovf_irq << TOIE0));
 
    timer0_cb = callback_func;
 
-   /* set the clock src to none to stop timer */
-   TCCR0B = 0;
-   /* set to CTC mode. Once the interrupt fires counter will reset to 0 */
-   TCCR0A = (1 << WGM01);
-   /* value to count up to */
-   OCR0A |= 0xFF;
-   /* enable COMPA interrupt */
-   TIMSK0 |= (1 << OCIE0A);
-   /* 256 pre-scaler */
-   TCCR0B |= (1 << CS02);
+   tim8_clk_cfg(timer_cfg);
 }
 
 ISR(TIMER0_COMPA_vect)
+{
+   if (timer0_cb)
+   {
+      timer0_cb();
+   }
+}
+
+/* TODO: allow for 3 unique callback functions to be bound in */
+ISR(TIMER0_COMPB_vect)
+{
+   if (timer0_cb)
+   {
+      timer0_cb();
+   }
+}
+
+ISR(TIMER0_OVF_vect)
 {
    if (timer0_cb)
    {

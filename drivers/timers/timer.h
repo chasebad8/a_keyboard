@@ -21,7 +21,9 @@ typedef enum
     TIM_CLK_8,
     TIM_CLK_64,
     TIM_CLK_256,
-    TIM_CLK_1024
+    TIM_CLK_1024,
+    TIM_CLK_EXT_FALLING,
+    TIM_CLK_EXT_RISING
 
 } tim_prescaler_t;
 
@@ -98,6 +100,17 @@ struct timer_16_bit_cfg_regs_s
 #define TIM1 ((struct timer_16_bit_cfg_regs_s *)&TCCR1A)
 #define TIM3 ((struct timer_16_bit_cfg_regs_s *)&TCCR3A)
 
+/******************************************************************************
+ * @name timer_0_init
+ *
+ * @brief initialize timer 0
+ *
+ * @param  timer_cfg
+ * @param  callback_func
+ *
+ * @return none
+ *
+ ******************************************************************************/
 void timer_0_init(struct timer8_config_t timer_cfg,
                   timer_callback_t       callback_func);
 

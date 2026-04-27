@@ -68,9 +68,6 @@ int main(void)
    gpio_write(GPIOB, PB0, LED_LOW);
    gpio_write(GPIOD, PD5, LED_LOW);
 
-   /* enable global interrupts */
-   sei();
-
    while(1)
    {
    	HID_Device_USBTask(&Keyboard_HID_Interface);
@@ -112,8 +109,13 @@ void timer0_cb_func()
 void init_hardware()
 {
    /* initialize LED's */
-   struct gpio_cfg_s      gpio_cfg  = {.direction = GPIO_OUTPUT, .pup = GPIO_PDOWN};
-   struct timer8_config_t timer_cfg = { .mode = TIM8_MODE_CTC };
+   struct gpio_cfg_s      gpio_cfg  = { .direction = GPIO_OUTPUT,
+                                        .pup       = GPIO_PDOWN};
+
+   struct timer8_config_t timer_cfg = { .mode      = TIM8_MODE_CTC,
+                                        .prescaler = TIM_CLK_256,
+                                        .ocr_a     = 0x40,
+                                        .enable_compa_irq = true };
 
    /* disable watchdog if enabled by bootloader/fuses */
    MCUSR &= ~(1 << WDRF);
@@ -130,6 +132,9 @@ void init_hardware()
    timer_0_init(timer_cfg, timer0_cb_func);
 
    key_matrix_init();
+
+   /* enable global interrupts */
+   sei();
 }
 
 /** Event handler for the library USB Connection event. */
