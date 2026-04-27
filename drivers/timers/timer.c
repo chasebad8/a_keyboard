@@ -4,7 +4,9 @@
 #include "gpio.h"
 #include <util/delay.h>
 
-volatile timer_callback_t timer0_cb = 0;
+volatile timer_callback_t timer0_compa_cb = 0;
+volatile timer_callback_t timer0_compb_cb = 0;
+volatile timer_callback_t timer0_ovf_cb = 0;
 
 /******************************************************************************
  * @name tim8_mode_cfg
@@ -106,13 +108,11 @@ static void tim8_clk_cfg(struct timer8_config_t timer_cfg)
  * @brief initialize timer 0
  *
  * @param  timer_cfg
- * @param  callback_func
  *
  * @return none
  *
  ******************************************************************************/
-void timer_0_init(struct timer8_config_t timer_cfg,
-                  timer_callback_t       callback_func)
+void timer_0_init(struct timer8_config_t timer_cfg)
 {
    /* disable timer during config */
    TIM0->TCCRnB = 0;
@@ -125,32 +125,74 @@ void timer_0_init(struct timer8_config_t timer_cfg,
    TIMSK0 = 0;
    TIMSK0 |= (((timer_cfg.enable_compb_irq << OCIE0B)) | (timer_cfg.enable_compa_irq << OCIE0A) | (timer_cfg.enable_ovf_irq << TOIE0));
 
-   timer0_cb = callback_func;
-
    tim8_clk_cfg(timer_cfg);
+}
+
+/******************************************************************************
+ * @name timer_0_bind_compa_irq_cb
+ *
+ * @brief bind in comp a irq callback function
+ *
+ * @param  cb_func
+ *
+ * @return none
+ *
+ ******************************************************************************/
+void timer_0_bind_compa_irq_cb(timer_callback_t cb_func)
+{
+   timer0_compa_cb = cb_func;
+}
+
+/******************************************************************************
+ * @name timer_0_bind_compb_irq_cb
+ *
+ * @brief bind in comp b irq callback function
+ *
+ * @param  cb_func
+ *
+ * @return none
+ *
+ ******************************************************************************/
+void timer_0_bind_compb_irq_cb(timer_callback_t cb_func)
+{
+   timer0_compb_cb = cb_func;
+}
+
+/******************************************************************************
+ * @name timer_0_bind_ovf_irq_cb
+ *
+ * @brief bind in overflow irq callback function
+ *
+ * @param  cb_func
+ *
+ * @return none
+ *
+ ******************************************************************************/
+void timer_0_bind_ovf_irq_cb(timer_callback_t cb_func)
+{
+   timer0_ovf_cb = cb_func;
 }
 
 ISR(TIMER0_COMPA_vect)
 {
-   if (timer0_cb)
+   if (timer0_compa_cb)
    {
-      timer0_cb();
+      timer0_compa_cb();
    }
 }
 
-/* TODO: allow for 3 unique callback functions to be bound in */
 ISR(TIMER0_COMPB_vect)
 {
-   if (timer0_cb)
+   if (timer0_compb_cb)
    {
-      timer0_cb();
+      timer0_compb_cb();
    }
 }
 
 ISR(TIMER0_OVF_vect)
 {
-   if (timer0_cb)
+   if (timer0_ovf_cb)
    {
-      timer0_cb();
+      timer0_ovf_cb();
    }
 }

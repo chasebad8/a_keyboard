@@ -106,12 +106,46 @@ struct timer_16_bit_cfg_regs_s
  * @brief initialize timer 0
  *
  * @param  timer_cfg
- * @param  callback_func
  *
  * @return none
  *
  ******************************************************************************/
-void timer_0_init(struct timer8_config_t timer_cfg,
-                  timer_callback_t       callback_func);
+void timer_0_init(struct timer8_config_t timer_cfg);
+
+/******************************************************************************
+ * @name timer_0_bind_compa_irq_cb
+ *
+ * @brief bind in comp a irq callback function
+ *
+ * @param  cb_func
+ *
+ * @return none
+ *
+ ******************************************************************************/
+void timer_0_bind_compa_irq_cb(timer_callback_t cb_func);
+
+/******************************************************************************
+ * @name timer_0_bind_compb_irq_cb
+ *
+ * @brief bind in comp b irq callback function
+ *
+ * @param  cb_func
+ *
+ * @return none
+ *
+ ******************************************************************************/
+void timer_0_bind_compb_irq_cb(timer_callback_t cb_func);
+
+/******************************************************************************
+ * @name timer_0_bind_ovf_irq_cb
+ *
+ * @brief bind in overflow irq callback function
+ *
+ * @param  cb_func
+ *
+ * @return none
+ *
+ ******************************************************************************/
+void timer_0_bind_ovf_irq_cb(timer_callback_t cb_func);
 
 #endif

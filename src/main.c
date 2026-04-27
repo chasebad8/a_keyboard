@@ -13,6 +13,8 @@
 #include "keyboard_matrix.h"
 #include "timer.h"
 
+#define  TIM_0_MAX_COUNT   (64)
+
 volatile bool timer_assert = false;
 
 /* timer callback function */
@@ -109,12 +111,13 @@ void timer0_cb_func()
 void init_hardware()
 {
    /* initialize LED's */
-   struct gpio_cfg_s      gpio_cfg  = { .direction = GPIO_OUTPUT,
-                                        .pup       = GPIO_PDOWN};
+   struct gpio_cfg_s gpio_cfg = { .direction = GPIO_OUTPUT,
+                                  .pup       = GPIO_PDOWN };
 
+   /* initialize timer 0 to count 1ms between scans */
    struct timer8_config_t timer_cfg = { .mode      = TIM8_MODE_CTC,
                                         .prescaler = TIM_CLK_256,
-                                        .ocr_a     = 0x40,
+                                        .ocr_a     = TIM_0_MAX_COUNT,
                                         .enable_compa_irq = true };
 
    /* disable watchdog if enabled by bootloader/fuses */
@@ -129,7 +132,8 @@ void init_hardware()
    gpio_init(GPIOB, PB0, gpio_cfg);
    gpio_init(GPIOD, PD5, gpio_cfg);
 
-   timer_0_init(timer_cfg, timer0_cb_func);
+   timer_0_bind_compa_irq_cb(timer0_cb_func);
+   timer_0_init(timer_cfg);
 
    key_matrix_init();
 
