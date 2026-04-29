@@ -34,6 +34,7 @@ bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t *const HIDIn
                                          const uint8_t ReportType,
                                          void *ReportData,
                                          uint16_t *const ReportSize);
+
 void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t *const HIDInterfaceInfo,
                                           const uint8_t ReportID,
                                           const uint8_t ReportType,
@@ -141,7 +142,16 @@ void init_hardware()
    sei();
 }
 
-/** Event handler for the library USB Connection event. */
+/******************************************************************************
+ * @name EVENT_USB_Device_Connect
+ *
+ * @brief LUFA event that is triggered when keyboard is plugged in
+ *
+ * @param  none
+ *
+ * @return none
+ *
+ ******************************************************************************/
 void EVENT_USB_Device_Connect(void)
 {
    for (uint8_t i = 0; i < 24; i++)
@@ -151,13 +161,32 @@ void EVENT_USB_Device_Connect(void)
    }
 }
 
-/** Event handler for the library USB Disconnection event. */
+/******************************************************************************
+ * @name EVENT_USB_Device_Disconnect
+ *
+ * @brief LUFA event that is triggered when keyboard is disconnected from
+ *
+ * @param  none
+ *
+ * @return none
+ *
+ ******************************************************************************/
 void EVENT_USB_Device_Disconnect(void)
 {
    ;
 }
 
-/** Event handler for the library USB Configuration Changed event. */
+/******************************************************************************
+ * @name EVENT_USB_Device_ConfigurationChanged
+ *
+ * @brief LUFA event that is triggered after keyboard connects and host is
+ *        requesting enumeration information.
+ *
+ * @param  none
+ *
+ * @return none
+ *
+ ******************************************************************************/
 void EVENT_USB_Device_ConfigurationChanged(void)
 {
    bool ConfigSuccess = true;
@@ -167,13 +196,31 @@ void EVENT_USB_Device_ConfigurationChanged(void)
    USB_Device_EnableSOFEvents();
 }
 
-/** Event handler for the library USB Control Request reception event. */
+/******************************************************************************
+ * @name EVENT_USB_Device_ControlRequest
+ *
+ * @brief LUFA event that is triggered
+ *
+ * @param  none
+ *
+ * @return none
+ *
+ ******************************************************************************/
 void EVENT_USB_Device_ControlRequest(void)
 {
    HID_Device_ProcessControlRequest(&Keyboard_HID_Interface);
 }
 
-/** Event handler for the USB device Start Of Frame event. */
+/******************************************************************************
+ * @name EVENT_USB_Device_StartOfFrame
+ *
+ * @brief LUFA event that is triggered when start of USB frame is detected
+ *
+ * @param  none
+ *
+ * @return none
+ *
+ ******************************************************************************/
 void EVENT_USB_Device_StartOfFrame(void)
 {
    HID_Device_MillisecondElapsed(&Keyboard_HID_Interface);
@@ -239,5 +286,8 @@ void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t *const HIDI
                                           const void *ReportData,
                                           const uint16_t ReportSize)
 {
-   ; /* gpio_write(GPIOD, PD5, !gpio_read(GPIOD, PD5)); */
+   /* this is sent from the host to the keyboard.
+      this would be useful if our caps lock had LED's that needed to be turned on.
+      in practice, for this keyboard, this can be ignored. */
+   ;
 }
